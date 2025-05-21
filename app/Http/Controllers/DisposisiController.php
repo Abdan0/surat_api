@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Disposisi;
+use App\Models\Notifikasi;
+use App\Models\User;
+use App\Models\Surat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class DisposisiController extends Controller
@@ -44,12 +48,44 @@ class DisposisiController extends Controller
 
         $disposisi = Disposisi::create([
             'surat_id' => $request->surat_id,
-            'dari_user_id' => Auth::id(),
+            'dari_user_id' => $request->dari_user_id, // Pastikan ini terkirim dengan benar
             'kepada_user_id' => $request->kepada_user_id,
             'instruksi' => $request->instruksi,
             'status' => $request->status,
             'tanggal_disposisi' => $request->tanggal_disposisi,
         ]);
+
+        // Dapatkan informasi user pengirim
+        $pengirim = User::find($request->dari_user_id);
+        $surat = Surat::find($disposisi->surat_id);
+
+        // Tambahkan log untuk debugging
+        Log::info('Disposisi created', [
+            'disposisi_id' => $disposisi->id,
+            'dari_user' => $pengirim->name,
+            'kepada_user_id' => $request->kepada_user_id,
+            'surat' => $surat->nomor_surat
+        ]);
+
+        // Buat notifikasi untuk penerima disposisi
+        try {
+            $notifikasi = Notifikasi::createDisposisiNotifikasi(
+                $request->kepada_user_id,
+                $pengirim->name,
+                $disposisi,
+                $surat
+            );
+
+            Log::info('Notification created', [
+                'notifikasi_id' => $notifikasi->id,
+                'untuk_user' => $request->kepada_user_id
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to create notification', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
 
         return response()->json([
             'message' => 'Disposisi berhasil dibuat',

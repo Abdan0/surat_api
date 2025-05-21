@@ -164,4 +164,45 @@ class SuratController extends Controller
 
         return response()->json(['status' => 'success', 'message' => 'Surat deleted']);
     }
+
+    /**
+     * Upload file untuk surat yang sudah ada
+     */
+    public function uploadFile(Request $request, $id)
+    {
+        // Validasi request
+        $request->validate([
+            'file_surat' => 'required|file|mimes:pdf,doc,docx|max:10240',
+        ]);
+
+        // Temukan surat
+        $surat = Surat::find($id);
+        if (!$surat) {
+            return response()->json([
+                'message' => 'Surat tidak ditemukan'
+            ], 404);
+        }
+
+        // Upload file
+        if ($request->hasFile('file_surat')) {
+            $file = $request->file('file_surat');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('surat_files', $fileName, 'public');
+
+            // Update surat dengan path file
+            $surat->file_path = $path;
+            $surat->save();
+
+            return response()->json([
+                'message' => 'File berhasil diupload',
+                'data' => [
+                    'file_path' => $path
+                ]
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'File tidak ditemukan'
+        ], 400);
+    }
 }

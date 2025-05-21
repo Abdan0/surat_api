@@ -7,6 +7,8 @@ use App\Http\Controllers\SuratController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\DisposisiController;
+use App\Http\Controllers\API\NotifikasiController;
+use App\Http\Controllers\API\UserController;
 
 
 // Auth API
@@ -18,14 +20,21 @@ Route::get('user-profile', function (Request $request) {
     return $request->user();
 })->middleware('auth:api');
 
+// Tambahkan route user
+Route::middleware('auth:api')->group(function () {
+    Route::get('users', [UserController::class, 'index']);
+    Route::get('users/{id}', [UserController::class, 'show']);
+});
+
 // Surat API
 Route::middleware('auth:api')->group(function () {
-    Route::get('surat', [SuratController::class, 'index']);
     Route::post('surat', [SuratController::class, 'store']);
+    Route::get('surat', [SuratController::class, 'index']);
     Route::get('surat/{id}', [SuratController::class, 'show']);
     Route::put('surat/{id}', [SuratController::class, 'update']);
     Route::patch('surat/{id}', [SuratController::class, 'update']);
     Route::delete('surat/{id}', [SuratController::class, 'destroy']);
+    Route::post('surat/{id}/upload', [SuratController::class, 'uploadFile']);
 });
 
 // Kategori API
@@ -56,4 +65,23 @@ Route::middleware('auth:api')->group(function () {
     Route::put('agenda/{id}', [AgendaController::class, 'update']);
     Route::patch('agenda/{id}', [AgendaController::class, 'update']);
     Route::delete('agenda/{id}', [AgendaController::class, 'destroy']);
+    // Tambahkan route baru untuk mencari agenda berdasarkan surat ID
+    Route::get('agenda/by-surat/{suratId}', [AgendaController::class, 'getBySuratId']);
 });
+
+// Health Check API
+Route::get('/ping', function() {
+    return response()->json(['message' => 'API is working!', 'timestamp' => now()]);
+});
+
+// Notifikasi API
+Route::middleware('auth:api')->group(function () {
+    // Notifikasi routes
+    Route::get('notifikasi', [NotifikasiController::class, 'index']);
+    Route::get('notifikasi/unread-count', [NotifikasiController::class, 'unreadCount']);
+    Route::put('notifikasi/{id}/read', [NotifikasiController::class, 'markAsRead']);
+    Route::put('notifikasi/read-all', [NotifikasiController::class, 'markAllAsRead']);
+});
+
+
+

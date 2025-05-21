@@ -141,4 +141,24 @@ class AgendaController extends Controller
             'message' => 'Agenda berhasil dihapus'
         ]);
     }
+
+    /**
+     * Menampilkan agenda berdasarkan surat ID
+     */
+    public function getBySuratId($suratId)
+    {
+        $agenda = Agenda::with('surat')->where('surat_id', $suratId)->first();
+
+        if (!$agenda) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Agenda not found for this surat'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $agenda
+        ]);
+    }
 }
