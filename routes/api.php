@@ -24,6 +24,10 @@ Route::get('user-profile', function (Request $request) {
 Route::middleware('auth:api')->group(function () {
     Route::get('users', [UserController::class, 'index']);
     Route::get('users/{id}', [UserController::class, 'show']);
+
+    Route::post('users/{id}', [UserController::class, 'update']);
+    Route::delete('users/{id}', [UserController::class, 'destroy']);
+    Route::post('update-user', [UserController::class, 'updateUser']);
 });
 
 // Surat API

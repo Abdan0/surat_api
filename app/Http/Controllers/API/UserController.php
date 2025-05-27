@@ -56,7 +56,30 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string',
+            'nidn' => 'required|string|unique:users,nidn,'.$id,
+            'role' => 'required|string',
+            'password' => 'nullable|string|min:6|confirmed',
+        ]);
+
+        $user->name = $request->name;
+        $user->nidn = $request->nidn;
+        $user->role = $request->role;
+
+        if ($request->filled('password')) {
+            $user->password = bcrypt($request->password);
+        }
+
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User updated successfully',
+            'data' => $user
+        ]);
     }
 
     /**
@@ -64,6 +87,12 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User deleted successfully'
+        ]);
     }
 }
