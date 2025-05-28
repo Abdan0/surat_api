@@ -39,6 +39,7 @@ Route::middleware('auth:api')->group(function () {
     Route::patch('surat/{id}', [SuratController::class, 'update']);
     Route::delete('surat/{id}', [SuratController::class, 'destroy']);
     Route::post('surat/{id}/upload', [SuratController::class, 'uploadFile']);
+    Route::get('surat/{id}/file', [SuratController::class, 'getFile']);
 });
 
 // Kategori API

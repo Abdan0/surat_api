@@ -175,28 +175,23 @@ class SuratController extends Controller
             'file_surat' => 'required|file|mimes:pdf,doc,docx|max:10240',
         ]);
 
-        // Temukan surat
-        $surat = Surat::find($id);
-        if (!$surat) {
-            return response()->json([
-                'message' => 'Surat tidak ditemukan'
-            ], 404);
-        }
+        // Cari surat berdasarkan ID
+        $surat = Surat::findOrFail($id);
 
-        // Upload file
+        // Upload dan simpan file
         if ($request->hasFile('file_surat')) {
             $file = $request->file('file_surat');
             $fileName = time() . '_' . $file->getClientOriginalName();
             $path = $file->storeAs('surat_files', $fileName, 'public');
 
-            // Update surat dengan path file
-            $surat->file_path = $path;
+            // Update kolom FILE (bukan file_path)
+            $surat->file = $path; // Ubah ke "file" sesuai dengan nama kolom di database
             $surat->save();
 
             return response()->json([
                 'message' => 'File berhasil diupload',
                 'data' => [
-                    'file_path' => $path
+                    'file' => $path // Gunakan "file" untuk konsistensi
                 ]
             ]);
         }
@@ -204,5 +199,22 @@ class SuratController extends Controller
         return response()->json([
             'message' => 'File tidak ditemukan'
         ], 400);
+    }
+
+    public function getFile($id)
+    {
+        $surat = Surat::findOrFail($id);
+
+        if (!$surat->file) {
+            return response()->json(['error' => 'File tidak tersedia'], 404);
+        }
+
+        $path = storage_path('app/public/' . $surat->file);
+
+        if (!file_exists($path)) {
+            return response()->json(['error' => 'File tidak ditemukan di server'], 404);
+        }
+
+        return response()->file($path);
     }
 }
