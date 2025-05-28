@@ -26,8 +26,19 @@ Route::middleware('auth:api')->group(function () {
     Route::get('users/{id}', [UserController::class, 'show']);
 
     Route::post('users/{id}', [UserController::class, 'update']);
+    Route::put('users/{id}', [UserController::class, 'update']);
+    Route::patch('users/{id}', [UserController::class, 'update']);
     Route::delete('users/{id}', [UserController::class, 'destroy']);
     Route::post('update-user', [UserController::class, 'updateUser']);
+
+    Route::post('/debug-register', function(Request $request) {
+    return response()->json([
+        'message' => 'Debug register endpoint',
+        'received_data' => $request->all(),
+        'headers' => $request->header(),
+        'method' => $request->method(),
+    ]);
+});
 });
 
 // Surat API
